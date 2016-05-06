@@ -18,8 +18,8 @@ import React, {
     View
 } from "react-native";
 
-var TodayScreen = require( "./TodayScreen" );
-var ObservationScreen = require( "./ObservationScreen" );
+var TodayScreen = require( "./screens/TodayScreen" );
+var ObservationScreen = require( "./screens/ObservationScreen" );
 
 var DUMMY_DATA = {
     cycleDay: 6,
