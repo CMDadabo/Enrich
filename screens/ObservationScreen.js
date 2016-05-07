@@ -96,7 +96,7 @@ const styles = StyleSheet.create( {
     actionButton: {
         width: 150,
         height: 50,
-        backgroundColor: colors.blue,
+        backgroundColor: colors.darkBlue,
         justifyContent: "center",
         alignItems: "center"
     },
