@@ -8,63 +8,103 @@ import React, {
     View
 } from "react-native";
 
+var colors = require( "../colors" );
+
 const OBSERVATION_OPTIONS = {
     elasticity: [ "0", "2", "2W", "4", "6", "8", "10", "10DL", "10SL", "10WL" ],
-    qualities: [ "C", "C/K", "G", "K", "L", "P", "Y", "B" ],
-    flow: [ "H", "M", "L", "VL" ]
+    qualities: [ "C", "C/K", "K", "G", "L", "P", "Y", "B" ],
+    flow: [ "VL", "L", "M", "H" ]
 }
 
-const STYLES = StyleSheet.create( {
+const styles = StyleSheet.create( {
     buttonRow: {
         flexDirection: "row",
         flexWrap: "wrap",
         alignItems: "center",
         justifyContent: "center",
-        borderBottomColor: "#5CD1F2"
+        borderBottomColor: colors.blue
     },
     container: {
-        backgroundColor: "#FFF9F3"
+        backgroundColor: colors.white,
+        flex: 1
     },
     buttonTitle: {
-        fontSize: 24,
+        fontSize: 20,
         textAlign: "center"
     },
     buttonContainer: {
         flexDirection: "row",
-        justifyContent: "center"
+        flexWrap: "wrap",
+        justifyContent: "center",
+        marginHorizontal: 10,
+        marginBottom: 15
     },
     button: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: "center",
-        alignItems: "center"
+        borderRadius: 15,
+        padding: 10,
+        margin: 5
     },
     buttonText: {
-        color: "#5CD1F2",
+        color: colors.primaryText,
         fontWeight: "bold",
         fontSize: 16
     },
     activeButton: {
-        backgroundColor: "#5CD1F2"
+        backgroundColor: colors.blue
     },
     activeButtonText: {
-        color: "#FFF9F3"
-    },
-    h2: {
-        fontSize: 18,
-        textAlign: "center"
+        color: colors.white
     },
     titleText: {
-        fontSize: 24,
+        fontSize: 18,
         textAlign: "center",
-        color: "#FFF9F3"
+        color: colors.white
     },
     titleContainer: {
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#253B72",
-        height: 60
+        backgroundColor: colors.darkBlue,
+        height: 50
+    },
+    currentObservationContainer: {
+        flexDirection: "column",
+        justifyContent: "center",
+        height: 100,
+        margin: 30,
+        borderWidth: 2,
+        borderColor: colors.secondaryText,
+        padding: 10,
+        alignSelf: "center"
+    },
+    currentObservation: {
+        fontSize: 28,
+        margin: 0,
+        padding: 0,
+        textAlign: "center",
+        color: colors.primaryText
+    },
+    actionButtonBar: {
+        flexDirection: "row",
+        justifyContent: "center",
+        position: "absolute",
+        flex: 1,
+        left: 0,
+        right: 0,
+        bottom: 30,
+        marginVertical: 5
+    },
+    actionButton: {
+        width: 150,
+        height: 50,
+        backgroundColor: colors.blue,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    secondaryButton: {
+        width: 150,
+        height: 50,
+        justifyContent: "center",
+        alignItems: "center"
     }
 
 } );
@@ -80,8 +120,8 @@ class ObservationButton extends Component
     {
         return (
             <TouchableHighlight onPress={ this.props.onPress }>
-                <View style={STYLES.button}>
-                    <Text style={STYLES.buttonText}>
+                <View style={ [ styles.button, this.props.isSelected() && styles.activeButton ] }>
+                    <Text style={ [ styles.buttonText, this.props.isSelected() && styles.activeButtonText ] }>
                         { this.props.value }
                     </Text>
                 </View>
@@ -103,7 +143,7 @@ class ObservationScreen extends Component
         };
     }
 
-    renderOptionsButtons ( options, setFunction )
+    renderOptionsButtons ( options, setFunction, selectedFunction, type )
     {
 
         var buttons = [];
@@ -114,7 +154,8 @@ class ObservationScreen extends Component
                 <ObservationButton
                     key={ i }
                     value={ options[ i ] }
-                    onPress={ setFunction.bind( this, options[ i ] ) }>
+                    onPress={ setFunction.bind( this, options[ i ] ) }
+                    isSelected={ selectedFunction.bind( this, type, options[ i ] ) }>
                 </ObservationButton>
             )
         }
@@ -123,13 +164,34 @@ class ObservationScreen extends Component
 
     }
 
+    isSelected ( type, value )
+    {
+
+        if( type === "elasticity" || type === "flow" )
+        {
+            return this.state[ type ] === value;
+        }
+        else if( type === "qualities" )
+        {
+            return this.state.qualities.indexOf( value ) > -1
+        }
+
+    }
+
     setElasticity ( value )
     {
+        value = this.state.elasticity === value ? "" : value;
         this.setState( { elasticity : value } );
+
+        if( [ "6", "8", "10" ].indexOf( value ) === -1 )
+        {
+            this.setState( { qualities: [] } );
+        }
     }
 
     setFlow ( value )
     {
+        value = this.state.flow === value ? "" : value;
         this.setState( { flow : value } );
     }
 
@@ -151,45 +213,84 @@ class ObservationScreen extends Component
     render ()
     {
         return (
-            <View style={STYLES.container}>
-                <View style={STYLES.titleContainer}>
-                    <Text style={STYLES.titleText}>Record Observation</Text>
+            <View style={styles.container}>
+
+                <View style={ styles.titleContainer }>
+                    <Text style={ styles.titleText }>Record Observation</Text>
+                </View>
+
+                <View style={ styles.currentObservationContainer }>
+                    <View style={{width: 60}}></View>
+                    {
+                        this.state.flow !== ""
+                        ?
+                        <Text style={ styles.currentObservation }>
+                            { this.state.flow }
+                        </Text>
+                        :
+                        null
+                    }
+                    {
+                        this.state.elasticity !== ""
+                        ?
+                        <Text style={ styles.currentObservation }>
+                            { this.state.elasticity }{ this.state.qualities.map( ( quality ) => quality ) }
+                        </Text>
+                        :
+                        null
+                    }
                 </View>
                 <View>
-                    <Text>
-                        { this.state.flow }
-                    </Text>
-                    <Text>
-                        { this.state.elasticity }{ this.state.qualities.map( ( quality ) => quality ) }
-                    </Text>
-                </View>
-                <View>
-                    <Text style={ STYLES.buttonTitle }>Flow</Text>
-                    <View style={ STYLES.buttonContainer }>
-                        { this.renderOptionsButtons( OBSERVATION_OPTIONS.flow, this.setFlow ) }
+                    <Text style={ styles.buttonTitle }>Flow</Text>
+                    <View style={ styles.buttonContainer }>
+                        { this.renderOptionsButtons(
+                            OBSERVATION_OPTIONS.flow,
+                            this.setFlow,
+                            this.isSelected,
+                            "flow"
+                        ) }
                     </View>
                 </View>
                 <View>
-                    <Text style={ STYLES.buttonTitle }>Elasticity</Text>
-                    <View style={ STYLES.buttonContainer }>
-                        { this.renderOptionsButtons( OBSERVATION_OPTIONS.elasticity, this.setElasticity ) }
+                    <Text style={ styles.buttonTitle }>Elasticity</Text>
+                    <View style={ styles.buttonContainer }>
+                        { this.renderOptionsButtons(
+                            OBSERVATION_OPTIONS.elasticity,
+                            this.setElasticity,
+                            this.isSelected,
+                            "elasticity"
+                        ) }
                     </View>
                 </View>
                 {
-                    [ "6", "8", "10" ].indexOf( this.state.elasticity ) > -1 ?
+                    [ "6", "8", "10" ].indexOf( this.state.elasticity ) > -1
+                    ?
                     <View>
-                        <Text style={ STYLES.buttonTitle }>Qualities</Text>
-                        <View style={ STYLES.buttonContainer }>
-                            { this.renderOptionsButtons( OBSERVATION_OPTIONS.qualities, this.toggleQuality ) }
+                        <Text style={ styles.buttonTitle }>Qualities</Text>
+                        <View style={ styles.buttonContainer }>
+                            { this.renderOptionsButtons(
+                                OBSERVATION_OPTIONS.qualities,
+                                this.toggleQuality,
+                                this.isSelected,
+                                "qualities"
+                            ) }
                         </View>
-                    </View> :
+                    </View>
+                    :
                     null
                 }
-                <TouchableHighlight onPress={ this.props.navigator.pop } >
-                    <View>
-                        <Text>← Back</Text>
-                    </View>
-                </TouchableHighlight>
+                <View style={ styles.actionButtonBar }>
+                    <TouchableHighlight onPress={this.props.navigator.pop}>
+                        <View style={ styles.secondaryButton }>
+                            <Text style={{fontWeight: "bold"}}>CANCEL</Text>
+                        </View>
+                    </TouchableHighlight>
+                    <TouchableHighlight>
+                        <View style={ styles.actionButton }>
+                            <Text style={ { color: colors.white, fontWeight: "bold" } }>SUBMIT</Text>
+                        </View>
+                    </TouchableHighlight>
+                </View>
             </View>
         );
     }
